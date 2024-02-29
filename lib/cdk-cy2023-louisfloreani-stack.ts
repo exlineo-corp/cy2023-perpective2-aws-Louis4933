@@ -6,8 +6,12 @@ import { NodejsFunction, NodejsFunctionProps } from 'aws-cdk-lib/aws-lambda-node
 
 // Outils Node
 import {join } from 'path'; // Simplifier la gestion des adresses vers les fichiers internes
+import { RestApi } from 'aws-cdk-lib/aws-apigateway';
 
 export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
+
+  eventsAPI:RestApi;
+  
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -17,7 +21,9 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
         name: 'event-id',
         type: AttributeType.STRING
       },
-      tableName: 'cy-feast-events'
+      tableName: 'cy-feast-events',
+      readCapacity: 1,
+      writeCapacity: 1
     });
     
     // Créer une lambda
