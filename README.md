@@ -1,3 +1,4 @@
+[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-24ddc0f5d75046c5622901739e7c5dd533143b0c8e959d652212380cedb1ea36.svg)](https://classroom.github.com/a/fi-kF-yD)
 # CY-2023_Perpective2-AWS
 ## Modéliser et codage d'une une infrastructure Cloud Serverless
 
@@ -24,3 +25,6 @@ Si vous avez des questions, merci de me les communiquer.
 ## Evaluations
 Vous serez évalués sur une infrastructure qui fonctionne. Les différents composants doivent s'interconnecter. Testez votre code sur le Learner Lab, notamment pour les Lambdas pour vérifier qu'il fonctionne et qu'il produit l'infrastructure attendue.
 Les accès à l'environnement de déploiement sera limité à des plages spécifiques. Vous ne pourrez les déployer que dans des périodes limitées.
+
+- régler les pb de cdk deploy
+- https://repost.aws/knowledge-center/cdk-already-exists-error
