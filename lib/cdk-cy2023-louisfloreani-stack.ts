@@ -12,7 +12,10 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
 
   eventsAPI: RestApi; // Api du projet
   eventsTb: Table; // Table des events
-  getEventsLambda: NodejsFunction; // Lambda d'origine
+  getEventsLambda: NodejsFunction; // Lambda pour récupérer les events
+  // postEventsLambda: NodejsFunction; // Lambda pour ajouter un event
+  // deleteEventsLambda: NodejsFunction; // Lambda pour supprimer un event
+  // putEventsLambda: NodejsFunction; // Lambda pour mettre à jour un event
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -28,20 +31,54 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
       writeCapacity: 1
     });
 
-    // Créer une lambda
+    // Créer des lambdas pour chaque HTTP method
     this.getEventsLambda = new NodejsFunction(this, 'getEvents', {
       memorySize: 128,
       description: "Appeler une liste d'évènements",
-      entry: join(__dirname, '../lambda/getEventsLambda.ts'),
-      handler: 'getEventsLambda',
+      entry: join(__dirname, '../lambda/eventsApiHandlerLambda.ts'),
       environment: {
         TABLE: this.eventsTb.tableName
-      }
+      },
+      runtime:lambda.Runtime.NODEJS_18_X
     });
 
-    // Donner des permissions pour lire ou écrire dans une table
-    // Ici c'est un get donc on donne le droit de lire
+    // this.postEventsLambda = new NodejsFunction(this, 'postEvents', {
+    //   memorySize: 128,
+    //   description: "Ajouter un évènement",
+    //   entry: join(__dirname, '../lambda/eventsApiHandlerLambda.ts'),
+    //   environment: {
+    //     TABLE: this.eventsTb.tableName
+    //   },
+    //   runtime:lambda.Runtime.NODEJS_18_X
+    // });
+
+    // this.deleteEventsLambda = new NodejsFunction(this, 'deleteEvents', {
+    //   memorySize: 128,
+    //   description: "Supprimer un évènement",
+    //   entry: join(__dirname, '../lambda/eventsApiHandlerLambda.ts'),
+    //   handler: 'eventsApiHandlerLambda',
+    //   environment: {
+    //     TABLE: this.eventsTb.tableName
+    //   },
+    //   runtime:lambda.Runtime.NODEJS_18_X
+    // });
+
+    // this.putEventsLambda = new NodejsFunction(this, 'putEvents', {
+    //   memorySize: 128,
+    //   description: "Mettre à jour un évènement",
+    //   entry: join(__dirname, '../lambda/eventsApiHandlerLambda.ts'),
+    //   handler: 'eventsApiHandlerLambda',
+    //   environment: {
+    //     TABLE: this.eventsTb.tableName
+    //   },
+    //   runtime:lambda.Runtime.NODEJS_18_X
+    // });
+
+    // Donner les permissions pour lire ou écrire dans une table en fonction de la méthode HTTP
     this.eventsTb.grantReadData(this.getEventsLambda);
+    // this.eventsTb.grantWriteData(this.postEventsLambda);
+    // this.eventsTb.grantReadWriteData(this.deleteEventsLambda);
+    // this.eventsTb.grantReadWriteData(this.putEventsLambda);
 
     // Créer une API Gateway
     this.eventsAPI = new RestApi(this, 'eventsAPI', {
@@ -49,14 +86,25 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
       description: "Gestion des évènements depuis le CY Feast"
     });
 
-    // Intégration de la lambda pour la connecter à une méthode de l'API
+    // Intégration des lambdas pour les connecter à la méthode correspondante dans l'API
     const getEventsLambdaIntegration = new LambdaIntegration(this.getEventsLambda);
+    // const postEventsLambdaIntegration = new LambdaIntegration(this.postEventsLambda);
+    // const deleteEventsLambdaIntegration = new LambdaIntegration(this.deleteEventsLambda);
+    // const putEventsLambdaIntegration = new LambdaIntegration(this.putEventsLambda);
 
-    this.eventsAPI.root.addMethod('get');
+    this.eventsAPI.root.addMethod('GET', getEventsLambdaIntegration);
+    // this.eventsAPI.root.addMethod('POST', postEventsLambdaIntegration);
+    // this.eventsAPI.root.addMethod('delete', deleteEventsLambdaIntegration);
+    // this.eventsAPI.root.addMethod('put', putEventsLambdaIntegration);
+
+    // Créer une ressource pour les events
     const apiEvents = this.eventsAPI.root.addResource('events');
 
-    apiEvents.addMethod('get', getEventsLambdaIntegration);
-    apiEvents.addMethod('post');
-    apiEvents.addMethod('put');
+    apiEvents.addMethod('GET', getEventsLambdaIntegration);
+    // apiEvents.addMethod('POST', postEventsLambdaIntegration);
+    // apiEvents.addMethod('delete', deleteEventsLambdaIntegration);
+    // apiEvents.addMethod('put', putEventsLambdaIntegration);
+
+    // buckets sur les évènements pour mettre les images etc
   }
 }
