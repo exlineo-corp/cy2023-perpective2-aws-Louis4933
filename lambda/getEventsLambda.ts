@@ -4,7 +4,7 @@ const db = new AWS.DynamoDB.DocumentClient();
 
 const TABLE = process.env.TABLE;
 
-exports.handler = async(event:any) => {
+exports.handler = async (event: any) => {
 
     let body;
     let statusCode = '200';
@@ -29,7 +29,7 @@ exports.handler = async(event:any) => {
             default:
                 throw new Error(`Unsupported method "${event.httpMethod}"`);
         }
-    } catch (err:any) {
+    } catch (err: any) {
         statusCode = '400';
         body = err.message;
     } finally {
