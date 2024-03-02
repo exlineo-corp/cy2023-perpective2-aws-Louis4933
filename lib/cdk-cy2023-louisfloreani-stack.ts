@@ -185,5 +185,79 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
     apiStocks.addMethod('POST', postStocksLambdaIntegration);
     apiStocks.addMethod('DELETE', deleteStocksLambdaIntegration);
     apiStocks.addMethod('PUT', putStocksLambdaIntegration);
+
+    // Users
+
+    // Ma stack va créer une table dans DynamoDB
+    const usersTb = new Table(this, 'tableUsers', {
+      partitionKey: {
+        name: 'user-id',
+        type: AttributeType.STRING
+      },
+      tableName: 'cy-feast-users',
+      readCapacity: 1,
+      writeCapacity: 1
+    });
+
+    // Créer des lambdas pour chaque HTTP method
+    const getUsersLambda = new NodejsFunction(this, 'getUsers', {
+      memorySize: 128,
+      description: "Appeler une liste d'utilisateurs",
+      entry: join(__dirname, '../lambda/usersApiHandlerLambda.ts'),
+      environment: {
+        TABLE: usersTb.tableName
+      },
+      runtime: lambda.Runtime.NODEJS_18_X
+    });
+
+    const postUsersLambda = new NodejsFunction(this, 'postUsers', {
+      memorySize: 128,
+      description: "Ajouter un utilisateur",
+      entry: join(__dirname, '../lambda/usersApiHandlerLambda.ts'),
+      environment: {
+        TABLE: usersTb.tableName
+      },
+      runtime: lambda.Runtime.NODEJS_18_X
+    });
+
+    const deleteUsersLambda = new NodejsFunction(this, 'deleteUsers', {
+      memorySize: 128,
+      description: "Supprimer un utilisateur",
+      entry: join(__dirname, '../lambda/usersApiHandlerLambda.ts'),
+      environment: {
+        TABLE: usersTb.tableName
+      },
+      runtime: lambda.Runtime.NODEJS_18_X
+    });
+
+    const putUsersLambda = new NodejsFunction(this, 'putUsers', {
+      memorySize: 128,
+      description: "Mettre à jour un utilisateur",
+      entry: join(__dirname, '../lambda/usersApiHandlerLambda.ts'),
+      environment: {
+        TABLE: usersTb.tableName
+      },
+      runtime: lambda.Runtime.NODEJS_18_X
+    });
+
+    // Donner les permissions pour lire ou écrire dans une table en fonction de la méthode HTTP
+    usersTb.grantReadData(getUsersLambda);
+    usersTb.grantWriteData(postUsersLambda);
+    usersTb.grantReadWriteData(deleteUsersLambda);
+    usersTb.grantReadWriteData(putUsersLambda);
+
+    // Intégration des lambdas pour les connecter à la méthode correspondante dans l'API
+    const getUsersLambdaIntegration = new LambdaIntegration(getUsersLambda);
+    const postUsersLambdaIntegration = new LambdaIntegration(postUsersLambda);
+    const deleteUsersLambdaIntegration = new LambdaIntegration(deleteUsersLambda);
+    const putUsersLambdaIntegration = new LambdaIntegration(putUsersLambda);
+
+    // Créer une ressource pour les utilisateurs
+    const apiUsers = this.cyFeastApi.root.addResource('users');
+
+    apiUsers.addMethod('GET', getUsersLambdaIntegration);
+    apiUsers.addMethod('POST', postUsersLambdaIntegration);
+    apiUsers.addMethod('DELETE', deleteUsersLambdaIntegration);
+    apiUsers.addMethod('PUT', putUsersLambdaIntegration);
   }
 }
