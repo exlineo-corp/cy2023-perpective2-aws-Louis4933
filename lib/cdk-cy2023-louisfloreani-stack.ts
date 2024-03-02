@@ -10,15 +10,35 @@ import { RestApi, LambdaIntegration } from 'aws-cdk-lib/aws-apigateway';
 
 export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
 
-  eventsAPI: RestApi; // Api du projet
+  cyFeastApi: RestApi; // Api du CY Feast
+
+  // Events
+
   eventsTb: Table; // Table des events
   getEventsLambda: NodejsFunction; // Lambda pour récupérer les events
   postEventsLambda: NodejsFunction; // Lambda pour ajouter un event
   deleteEventsLambda: NodejsFunction; // Lambda pour supprimer un event
   putEventsLambda: NodejsFunction; // Lambda pour mettre à jour un event
 
+  // Stocks
+
+  stocksTb: Table; // Table des stocks
+  getStocksLambda: NodejsFunction; // Lambda pour récupérer les stocks
+  postStocksLambda: NodejsFunction; // Lambda pour ajouter un stock
+  deleteStocksLambda: NodejsFunction; // Lambda pour supprimer un stock
+  putStocksLambda: NodejsFunction; // Lambda pour mettre à jour un stock
+
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+
     super(scope, id, props);
+
+    // Créer une API Gateway globale
+    this.cyFeastApi = new RestApi(this, 'cyFeastApi', {
+      restApiName: "CY Feast API",
+      description: "Gestionnaire d'évènements du CY Feast"
+    });
+
+    // Events
 
     // Ma stack va créer une table dans DynamoDB
     this.eventsTb = new Table(this, 'tableEvents', {
@@ -78,12 +98,6 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
     this.eventsTb.grantReadWriteData(this.deleteEventsLambda);
     this.eventsTb.grantReadWriteData(this.putEventsLambda);
 
-    // Créer une API Gateway
-    this.eventsAPI = new RestApi(this, 'eventsAPI', {
-      restApiName: "Accéder aux events",
-      description: "Gestion des évènements depuis le CY Feast"
-    });
-
     // Intégration des lambdas pour les connecter à la méthode correspondante dans l'API
     const getEventsLambdaIntegration = new LambdaIntegration(this.getEventsLambda);
     const postEventsLambdaIntegration = new LambdaIntegration(this.postEventsLambda);
@@ -91,11 +105,85 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
     const putEventsLambdaIntegration = new LambdaIntegration(this.putEventsLambda);
 
     // Créer une ressource pour les events
-    const apiEvents = this.eventsAPI.root.addResource('events');
+    const apiEvents = this.cyFeastApi.root.addResource('events');
 
     apiEvents.addMethod('GET', getEventsLambdaIntegration);
     apiEvents.addMethod('POST', postEventsLambdaIntegration);
     apiEvents.addMethod('DELETE', deleteEventsLambdaIntegration);
     apiEvents.addMethod('PUT', putEventsLambdaIntegration);
+
+    // Stocks
+
+    // Ma stack va créer une table dans DynamoDB
+    this.stocksTb = new Table(this, 'tableStocks', {
+      partitionKey: {
+        name: 'stock-id',
+        type: AttributeType.STRING
+      },
+      tableName: 'cy-feast-stocks',
+      readCapacity: 1,
+      writeCapacity: 1
+    });
+
+    // Créer des lambdas pour chaque HTTP method
+    this.getStocksLambda = new NodejsFunction(this, 'getStocks', {
+      memorySize: 128,
+      description: "Appeler une liste de stocks",
+      entry: join(__dirname, '../lambda/stocksApiHandlerLambda.ts'),
+      environment: {
+        TABLE: this.stocksTb.tableName
+      },
+      runtime: lambda.Runtime.NODEJS_18_X
+    });
+
+    this.postStocksLambda = new NodejsFunction(this, 'postStocks', {
+      memorySize: 128,
+      description: "Ajouter un stock",
+      entry: join(__dirname, '../lambda/stocksApiHandlerLambda.ts'),
+      environment: {
+        TABLE: this.stocksTb.tableName
+      },
+      runtime: lambda.Runtime.NODEJS_18_X
+    });
+
+    this.deleteStocksLambda = new NodejsFunction(this, 'deleteStocks', {
+      memorySize: 128,
+      description: "Supprimer un stock",
+      entry: join(__dirname, '../lambda/stocksApiHandlerLambda.ts'),
+      environment: {
+        TABLE: this.stocksTb.tableName
+      },
+      runtime: lambda.Runtime.NODEJS_18_X
+    });
+
+    this.putStocksLambda = new NodejsFunction(this, 'putStocks', {
+      memorySize: 128,
+      description: "Mettre à jour un stock",
+      entry: join(__dirname, '../lambda/stocksApiHandlerLambda.ts'),
+      environment: {
+        TABLE: this.stocksTb.tableName
+      },
+      runtime: lambda.Runtime.NODEJS_18_X
+    });
+
+    // Donner les permissions pour lire ou écrire dans une table en fonction de la méthode HTTP
+    this.stocksTb.grantReadData(this.getStocksLambda);
+    this.stocksTb.grantWriteData(this.postStocksLambda);
+    this.stocksTb.grantReadWriteData(this.deleteStocksLambda);
+    this.stocksTb.grantReadWriteData(this.putStocksLambda);
+
+    // Intégration des lambdas pour les connecter à la méthode correspondante dans l'API
+    const getStocksLambdaIntegration = new LambdaIntegration(this.getStocksLambda);
+    const postStocksLambdaIntegration = new LambdaIntegration(this.postStocksLambda);
+    const deleteStocksLambdaIntegration = new LambdaIntegration(this.deleteStocksLambda);
+    const putStocksLambdaIntegration = new LambdaIntegration(this.putStocksLambda);
+
+    // Créer une ressource pour les stocks
+    const apiStocks = this.cyFeastApi.root.addResource('stocks');
+
+    apiStocks.addMethod('GET', getStocksLambdaIntegration);
+    apiStocks.addMethod('POST', postStocksLambdaIntegration);
+    apiStocks.addMethod('DELETE', deleteStocksLambdaIntegration);
+    apiStocks.addMethod('PUT', putStocksLambdaIntegration);
   }
 }
