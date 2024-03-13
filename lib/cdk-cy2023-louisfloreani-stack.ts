@@ -3,6 +3,8 @@ import { Construct } from 'constructs';
 import { AttributeType, Table } from 'aws-cdk-lib/aws-dynamodb'; // Table dynamoDB et les attributs de sa clé de partition 
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';// Créer une lambda NodeJS
+import { UserPool, VerificationEmailStyle } from 'aws-cdk-lib/aws-cognito'; // User Pool
+import { CognitoUserPoolsAuthorizer } from 'aws-cdk-lib/aws-apigateway'; // Authorizer pour l'API Gateway
 
 // Outils Node
 import { join } from 'path'; // Simplifier la gestion des adresses vers les fichiers internes
@@ -31,6 +33,24 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
 
     super(scope, id, props);
+
+    const userPool = new UserPool(this, 'myUserPool', {
+      selfSignUpEnabled: true,
+      userVerification: {
+        emailSubject: 'Verify your email for our awesome app!',
+        emailBody: 'Hello {username}, Thanks for signing up to our awesome app! Your verification code is {####}',
+        emailStyle: VerificationEmailStyle.CODE,
+        smsMessage: 'Hello {username}, Thanks for signing up to our awesome app! Your verification code is {####}',
+      },
+      signInAliases: {
+        email: true,
+      },
+    });
+    
+    const cognitoAuthorizer = new CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
+      cognitoUserPools: [userPool],
+      identitySource: 'method.request.header.Authorization',
+    });
 
     // Créer une API Gateway globale
     this.cyFeastApi = new RestApi(this, 'cyFeastApi', {
@@ -107,7 +127,7 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
     // Créer une ressource pour les events
     const apiEvents = this.cyFeastApi.root.addResource('events');
 
-    apiEvents.addMethod('GET', getEventsLambdaIntegration);
+    apiEvents.addMethod('GET', getEventsLambdaIntegration, { authorizer: cognitoAuthorizer });
     apiEvents.addMethod('POST', postEventsLambdaIntegration);
     apiEvents.addMethod('DELETE', deleteEventsLambdaIntegration);
     apiEvents.addMethod('PUT', putEventsLambdaIntegration);
