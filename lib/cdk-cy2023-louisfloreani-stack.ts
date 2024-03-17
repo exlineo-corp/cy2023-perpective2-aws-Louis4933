@@ -34,21 +34,10 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
 
     super(scope, id, props);
 
-    const userPool = new UserPool(this, 'myUserPool', {
-      selfSignUpEnabled: true,
-      userVerification: {
-        emailSubject: 'Verify your email for our awesome app!',
-        emailBody: 'Hello {username}, Thanks for signing up to our awesome app! Your verification code is {####}',
-        emailStyle: VerificationEmailStyle.CODE,
-        smsMessage: 'Hello {username}, Thanks for signing up to our awesome app! Your verification code is {####}',
-      },
-      signInAliases: {
-        email: true,
-      },
-    });
-    
+    const cytechUserPool = UserPool.fromUserPoolId(this, 'cytechUserPool', 'eu-west-3_AD4EQb45n');
+
     const cognitoAuthorizer = new CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
-      cognitoUserPools: [userPool],
+      cognitoUserPools: [cytechUserPool],
       identitySource: 'method.request.header.Authorization',
     });
 
