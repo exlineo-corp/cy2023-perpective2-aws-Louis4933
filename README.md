@@ -29,4 +29,4 @@ Les accès à l'environnement de déploiement sera limité à des plages spécif
 # To do
 
 - add les buckets pour les images
-- utiliser la même syntaxe aussi pour les users dans la stack
+- ajouter les lambdas singuliers

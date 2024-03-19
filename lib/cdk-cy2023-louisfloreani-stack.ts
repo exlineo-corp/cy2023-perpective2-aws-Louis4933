@@ -30,6 +30,12 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
   deleteStocksLambda: NodejsFunction; // Lambda pour supprimer un stock
   putStocksLambda: NodejsFunction; // Lambda pour mettre à jour un stock
 
+  // Users
+
+  usersTb: Table; // Table des utilisateurs
+  getUsersLambda: NodejsFunction; // Lambda pour récupérer les utilisateurs
+  deleteUsersLambda: NodejsFunction; // Lambda pour supprimer un utilisateur
+
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
 
     super(scope, id, props);
@@ -233,7 +239,7 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
     // Users
 
     // Ma stack va créer une table dans DynamoDB
-    const usersTb = new Table(this, 'tableUsers', {
+    this.usersTb = new Table(this, 'tableUsers', {
       partitionKey: {
         name: 'user-id',
         type: AttributeType.STRING
@@ -250,7 +256,7 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
       description: "Appeler une liste d'utilisateurs",
       entry: join(__dirname, '../lambda/usersApiHandlerLambda.ts'),
       environment: {
-        TABLE: usersTb.tableName
+        TABLE: this.usersTb.tableName
       },
       runtime: lambda.Runtime.NODEJS_18_X
     });
@@ -260,14 +266,14 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
       description: "Supprimer un utilisateur",
       entry: join(__dirname, '../lambda/usersApiHandlerLambda.ts'),
       environment: {
-        TABLE: usersTb.tableName
+        TABLE: this.usersTb.tableName
       },
       runtime: lambda.Runtime.NODEJS_18_X
     });
 
     // Donner les permissions pour lire ou écrire dans une table en fonction de la méthode HTTP
-    usersTb.grantReadData(getUsersLambda);
-    usersTb.grantReadWriteData(deleteUsersLambda);
+    this.usersTb.grantReadData(getUsersLambda);
+    this.usersTb.grantReadWriteData(deleteUsersLambda);
 
     // Intégration des lambdas pour les connecter à la méthode correspondante dans l'API
     const getUsersLambdaIntegration = new LambdaIntegration(getUsersLambda);
