@@ -34,6 +34,12 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
 
     super(scope, id, props);
 
+    // Créer une API Gateway globale
+    this.cyFeastApi = new RestApi(this, 'cyFeastApi', {
+      restApiName: "CY Feast API",
+      description: "Gestionnaire d'évènements du CY Feast"
+    });
+    
     // Création de la User Pool
     const cytechUserPool = new UserPool(this, 'cytechUserPool', {
       userPoolName: 'CyTechUserPool',
@@ -72,12 +78,6 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
     const cognitoAuthorizer = new CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
       cognitoUserPools: [cytechUserPool],
       identitySource: 'method.request.header.Authorization',
-    });
-
-    // Créer une API Gateway globale
-    this.cyFeastApi = new RestApi(this, 'cyFeastApi', {
-      restApiName: "CY Feast API",
-      description: "Gestionnaire d'évènements du CY Feast"
     });
 
     // Events
@@ -150,10 +150,10 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
     // Créer une ressource pour les events
     const apiEvents = this.cyFeastApi.root.addResource('events');
 
-    apiEvents.addMethod('GET', getEventsLambdaIntegration, { authorizer: cognitoAuthorizer });
-    apiEvents.addMethod('POST', postEventsLambdaIntegration);
-    apiEvents.addMethod('DELETE', deleteEventsLambdaIntegration);
-    apiEvents.addMethod('PUT', putEventsLambdaIntegration);
+    apiEvents.addMethod('GET', getEventsLambdaIntegration);
+    apiEvents.addMethod('POST', postEventsLambdaIntegration, { authorizer: cognitoAuthorizer });
+    apiEvents.addMethod('DELETE', deleteEventsLambdaIntegration, { authorizer: cognitoAuthorizer });
+    apiEvents.addMethod('PUT', putEventsLambdaIntegration, { authorizer: cognitoAuthorizer });
 
     // Stocks
 
@@ -255,16 +255,6 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_18_X
     });
 
-    const postUsersLambda = new NodejsFunction(this, 'postUsers', {
-      memorySize: 128,
-      description: "Ajouter un utilisateur",
-      entry: join(__dirname, '../lambda/usersApiHandlerLambda.ts'),
-      environment: {
-        TABLE: usersTb.tableName
-      },
-      runtime: lambda.Runtime.NODEJS_18_X
-    });
-
     const deleteUsersLambda = new NodejsFunction(this, 'deleteUsers', {
       memorySize: 128,
       description: "Supprimer un utilisateur",
@@ -275,34 +265,18 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_18_X
     });
 
-    const putUsersLambda = new NodejsFunction(this, 'putUsers', {
-      memorySize: 128,
-      description: "Mettre à jour un utilisateur",
-      entry: join(__dirname, '../lambda/usersApiHandlerLambda.ts'),
-      environment: {
-        TABLE: usersTb.tableName
-      },
-      runtime: lambda.Runtime.NODEJS_18_X
-    });
-
     // Donner les permissions pour lire ou écrire dans une table en fonction de la méthode HTTP
     usersTb.grantReadData(getUsersLambda);
-    usersTb.grantWriteData(postUsersLambda);
     usersTb.grantReadWriteData(deleteUsersLambda);
-    usersTb.grantReadWriteData(putUsersLambda);
 
     // Intégration des lambdas pour les connecter à la méthode correspondante dans l'API
     const getUsersLambdaIntegration = new LambdaIntegration(getUsersLambda);
-    const postUsersLambdaIntegration = new LambdaIntegration(postUsersLambda);
     const deleteUsersLambdaIntegration = new LambdaIntegration(deleteUsersLambda);
-    const putUsersLambdaIntegration = new LambdaIntegration(putUsersLambda);
 
     // Créer une ressource pour les utilisateurs
     const apiUsers = this.cyFeastApi.root.addResource('users');
 
     apiUsers.addMethod('GET', getUsersLambdaIntegration);
-    apiUsers.addMethod('POST', postUsersLambdaIntegration);
     apiUsers.addMethod('DELETE', deleteUsersLambdaIntegration);
-    apiUsers.addMethod('PUT', putUsersLambdaIntegration);
   }
 }
