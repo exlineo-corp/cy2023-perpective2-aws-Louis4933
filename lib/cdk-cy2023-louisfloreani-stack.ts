@@ -284,5 +284,26 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
 
     apiUsers.addMethod('GET', getUsersLambdaIntegration);
     apiUsers.addMethod('DELETE', deleteUsersLambdaIntegration);
+
+    // Lambda pour récupérer un événement par ID
+    const getEventByIdLambda = new NodejsFunction(this, 'getEventById', {
+      memorySize: 128,
+      description: "Récupérer un évènement par ID",
+      entry: join(__dirname, '../lambda/getEventByIdLambda.ts'),
+      environment: {
+        TABLE: this.eventsTb.tableName
+      },
+      runtime: lambda.Runtime.NODEJS_18_X
+    });
+
+    this.eventsTb.grantReadData(getEventByIdLambda);
+
+    const getEventByIdLambdaIntegration = new LambdaIntegration(getEventByIdLambda);
+
+    // Créer une ressource enfant pour un événement spécifique par ID sous 'events'
+    const apiEventById = apiEvents.addResource('{id}');
+
+    // Ajouter une méthode GET à cette ressource pour récupérer un événement par son ID
+    apiEventById.addMethod('GET', getEventByIdLambdaIntegration);
   }
 }
