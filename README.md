@@ -29,4 +29,7 @@ Les accès à l'environnement de déploiement sera limité à des plages spécif
 # To do
 
 - add les buckets pour les images
-- ajouter les lambdas singuliers
+- lien entre la création d'un user dans la pool / ajout dans la table
+- ajouter une expiration d'un id token access à un jour à la création de l'user pool
+- ajouter le schéma au readme du repo
+- ajout des autres user pool/ authorizer sur les routes où c'est nécessaire

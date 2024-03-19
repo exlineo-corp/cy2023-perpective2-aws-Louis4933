@@ -161,6 +161,27 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
     apiEvents.addMethod('DELETE', deleteEventsLambdaIntegration, { authorizer: cognitoAuthorizer });
     apiEvents.addMethod('PUT', putEventsLambdaIntegration, { authorizer: cognitoAuthorizer });
 
+    // Lambda pour récupérer un événement par ID
+    const getEventByIdLambda = new NodejsFunction(this, 'getEventById', {
+      memorySize: 128,
+      description: "Récupérer un évènement par ID",
+      entry: join(__dirname, '../lambda/getEventByIdLambda.ts'),
+      environment: {
+        TABLE: this.eventsTb.tableName
+      },
+      runtime: lambda.Runtime.NODEJS_18_X
+    });
+
+    this.eventsTb.grantReadData(getEventByIdLambda);
+
+    const getEventByIdLambdaIntegration = new LambdaIntegration(getEventByIdLambda);
+
+    // Créer une ressource enfant pour un événement spécifique par ID sous 'events'
+    const apiEventById = apiEvents.addResource('{id}');
+
+    // Ajouter une méthode GET à cette ressource pour récupérer un événement par son ID
+    apiEventById.addMethod('GET', getEventByIdLambdaIntegration);
+
     // Stocks
 
     // Ma stack va créer une table dans DynamoDB
@@ -236,6 +257,27 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
     apiStocks.addMethod('DELETE', deleteStocksLambdaIntegration);
     apiStocks.addMethod('PUT', putStocksLambdaIntegration);
 
+    // Lambda pour récupérer un stock par ID
+    const getStockByIdLambda = new NodejsFunction(this, 'getStockById', {
+      memorySize: 128,
+      description: "Récupérer un stock par ID",
+      entry: join(__dirname, '../lambda/getStockByIdLambda.ts'),
+      environment: {
+        TABLE: this.stocksTb.tableName
+      },
+      runtime: lambda.Runtime.NODEJS_18_X
+    });
+
+    this.stocksTb.grantReadData(getStockByIdLambda);
+
+    const getStockByIdLambdaIntegration = new LambdaIntegration(getStockByIdLambda);
+
+    // Créer une ressource enfant pour un événement spécifique par ID sous 'stocks'
+    const apiStockById = apiStocks.addResource('{id}');
+
+    // Ajouter une méthode GET à cette ressource pour récupérer un stock par son ID
+    apiStockById.addMethod('GET', getStockByIdLambdaIntegration);
+
     // Users
 
     // Ma stack va créer une table dans DynamoDB
@@ -285,25 +327,25 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
     apiUsers.addMethod('GET', getUsersLambdaIntegration);
     apiUsers.addMethod('DELETE', deleteUsersLambdaIntegration);
 
-    // Lambda pour récupérer un événement par ID
-    const getEventByIdLambda = new NodejsFunction(this, 'getEventById', {
+    // Lambda pour récupérer un user par ID
+    const getUserByIdLambda = new NodejsFunction(this, 'getUserById', {
       memorySize: 128,
-      description: "Récupérer un évènement par ID",
-      entry: join(__dirname, '../lambda/getEventByIdLambda.ts'),
+      description: "Récupérer un user par ID",
+      entry: join(__dirname, '../lambda/getUserByIdLambda.ts'),
       environment: {
-        TABLE: this.eventsTb.tableName
+        TABLE: this.usersTb.tableName
       },
       runtime: lambda.Runtime.NODEJS_18_X
     });
 
-    this.eventsTb.grantReadData(getEventByIdLambda);
+    this.usersTb.grantReadData(getUserByIdLambda);
 
-    const getEventByIdLambdaIntegration = new LambdaIntegration(getEventByIdLambda);
+    const getUserByIdLambdaIntegration = new LambdaIntegration(getUserByIdLambda);
 
-    // Créer une ressource enfant pour un événement spécifique par ID sous 'events'
-    const apiEventById = apiEvents.addResource('{id}');
+    // Créer une ressource enfant pour un user spécifique par ID sous 'users'
+    const apiUserById = apiUsers.addResource('{id}');
 
-    // Ajouter une méthode GET à cette ressource pour récupérer un événement par son ID
-    apiEventById.addMethod('GET', getEventByIdLambdaIntegration);
+    // Ajouter une méthode GET à cette ressource pour récupérer un user par son ID
+    apiUserById.addMethod('GET', getUserByIdLambdaIntegration);
   }
 }
