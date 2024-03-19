@@ -3,7 +3,7 @@ import { Construct } from 'constructs';
 import { AttributeType, Table } from 'aws-cdk-lib/aws-dynamodb'; // Table dynamoDB et les attributs de sa clé de partition 
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';// Créer une lambda NodeJS
-import { UserPool, VerificationEmailStyle } from 'aws-cdk-lib/aws-cognito'; // User Pool
+import { UserPool, UserPoolClient, UserPoolDomain, VerificationEmailStyle } from 'aws-cdk-lib/aws-cognito'; // User Pool
 import { CognitoUserPoolsAuthorizer } from 'aws-cdk-lib/aws-apigateway'; // Authorizer pour l'API Gateway
 
 // Outils Node
@@ -34,7 +34,40 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
 
     super(scope, id, props);
 
-    const cytechUserPool = UserPool.fromUserPoolId(this, 'cytechUserPool', 'eu-west-3_AD4EQb45n');
+    // Création de la User Pool
+    const cytechUserPool = new UserPool(this, 'cytechUserPool', {
+      userPoolName: 'CyTechUserPool',
+      selfSignUpEnabled: true,
+      signInAliases: { email: true },
+      autoVerify: { email: true },
+      userVerification: {
+        emailStyle: VerificationEmailStyle.CODE,
+      },
+      removalPolicy: cdk.RemovalPolicy.DESTROY
+    });
+
+    // Créer une application client pour le pool d'utilisateurs
+    const cytechUserPoolClient = new UserPoolClient(this, 'cytechUserPoolClient', {
+      userPool: cytechUserPool,
+      userPoolClientName: 'cytechUserPoolClient', 
+      generateSecret: false,
+      authFlows: {
+        userPassword: true, 
+        userSrp: true
+      }
+    });
+
+    cytechUserPoolClient.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+
+    // Créer un domaine personnalisé pour le pool d'utilisateurs Cognito
+    const cytechUserPoolDomain = new UserPoolDomain(this, 'cytechUserPoolDomain', {
+      userPool: cytechUserPool,
+      cognitoDomain: {
+        domainPrefix: 'cytech-user-pool-domain'
+      }
+    });
+
+    cytechUserPoolDomain.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
 
     const cognitoAuthorizer = new CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
       cognitoUserPools: [cytechUserPool],
@@ -57,7 +90,8 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
       },
       tableName: 'cy-feast-events',
       readCapacity: 1,
-      writeCapacity: 1
+      writeCapacity: 1,
+      removalPolicy: cdk.RemovalPolicy.DESTROY
     });
 
     // Créer des lambdas pour chaque HTTP method
@@ -131,7 +165,8 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
       },
       tableName: 'cy-feast-stocks',
       readCapacity: 1,
-      writeCapacity: 1
+      writeCapacity: 1,
+      removalPolicy: cdk.RemovalPolicy.DESTROY
     });
 
     // Créer des lambdas pour chaque HTTP method
@@ -205,7 +240,8 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
       },
       tableName: 'cy-feast-users',
       readCapacity: 1,
-      writeCapacity: 1
+      writeCapacity: 1,
+      removalPolicy: cdk.RemovalPolicy.DESTROY
     });
 
     // Créer des lambdas pour chaque HTTP method
