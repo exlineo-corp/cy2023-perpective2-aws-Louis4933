@@ -367,5 +367,24 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
 
     // On peut s'inscrire uniquement si on est un user authentifié
     apiSignUpToEvent.addMethod('POST', signUpToEventLambdaIntegration, { authorizer: cognitoAuthorizer });
+
+    //Lambda pour se désinscrire d'un évènement
+    const signOutFromEventLambda = new NodejsFunction(this, 'signOutFromEvent', {
+      memorySize: 128,
+      description: "Se désinscrire d'un évènement",
+      entry: join(__dirname, '../lambda/signOutFromEventLambda.ts'),
+      environment: {
+        TABLE: this.eventsTb.tableName
+      },
+      runtime: lambda.Runtime.NODEJS_18_X
+    });
+
+    this.eventsTb.grantReadWriteData(signOutFromEventLambda);
+
+    const signOutFromEventLambdaIntegration = new LambdaIntegration(signOutFromEventLambda);
+
+    const apiSignOutFromEvent = apiEvents.addResource('sign-out-from-event');
+
+    apiSignOutFromEvent.addMethod('POST', signOutFromEventLambdaIntegration, { authorizer: cognitoAuthorizer });
   }
 }
