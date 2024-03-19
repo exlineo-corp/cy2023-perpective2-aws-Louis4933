@@ -347,5 +347,25 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
 
     // Ajouter une méthode GET à cette ressource pour récupérer un user par son ID
     apiUserById.addMethod('GET', getUserByIdLambdaIntegration);
+
+    //Lambda pour s'inscrire à un évènement
+    const signUpToEventLambda = new NodejsFunction(this, 'signUpToEvent', {
+      memorySize: 128,
+      description: "S'inscrire à un évènement",
+      entry: join(__dirname, '../lambda/signUpToEventLambda.ts'),
+      environment: {
+        TABLE: this.eventsTb.tableName
+      },
+      runtime: lambda.Runtime.NODEJS_18_X
+    });
+
+    this.eventsTb.grantReadWriteData(signUpToEventLambda);
+
+    const signUpToEventLambdaIntegration = new LambdaIntegration(signUpToEventLambda);
+
+    const apiSignUpToEvent = apiEvents.addResource('sign-up-to-event');
+
+    // On peut s'inscrire uniquement si on est un user authentifié
+    apiSignUpToEvent.addMethod('POST', signUpToEventLambdaIntegration, { authorizer: cognitoAuthorizer });
   }
 }
