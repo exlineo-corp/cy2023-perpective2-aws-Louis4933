@@ -69,7 +69,7 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
         userSrp: true
       },
       accessTokenValidity: Duration.hours(24), 
-      idTokenValidity: Duration.hours(24),
+      idTokenValidity: Duration.hours(24)
     });
 
     cytechUserPoolClient.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
@@ -255,10 +255,10 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
     // Créer une ressource pour les stocks
     const apiStocks = this.cyFeastApi.root.addResource('stocks');
 
-    apiStocks.addMethod('GET', getStocksLambdaIntegration);
-    apiStocks.addMethod('POST', postStocksLambdaIntegration);
-    apiStocks.addMethod('DELETE', deleteStocksLambdaIntegration);
-    apiStocks.addMethod('PUT', putStocksLambdaIntegration);
+    apiStocks.addMethod('GET', getStocksLambdaIntegration, { authorizer: cognitoAuthorizer });
+    apiStocks.addMethod('POST', postStocksLambdaIntegration, { authorizer: cognitoAuthorizer });
+    apiStocks.addMethod('DELETE', deleteStocksLambdaIntegration, { authorizer: cognitoAuthorizer });
+    apiStocks.addMethod('PUT', putStocksLambdaIntegration, { authorizer: cognitoAuthorizer });
 
     // Lambda pour récupérer un stock par ID
     const getStockByIdLambda = new NodejsFunction(this, 'getStockById', {
@@ -279,7 +279,7 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
     const apiStockById = apiStocks.addResource('{id}');
 
     // Ajouter une méthode GET à cette ressource pour récupérer un stock par son ID
-    apiStockById.addMethod('GET', getStockByIdLambdaIntegration);
+    apiStockById.addMethod('GET', getStockByIdLambdaIntegration, { authorizer: cognitoAuthorizer });
 
     // Users
 
@@ -351,10 +351,10 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
     // Créer une ressource pour les utilisateurs
     const apiUsers = this.cyFeastApi.root.addResource('users');
 
-    apiUsers.addMethod('GET', getUsersLambdaIntegration);
-    apiUsers.addMethod('DELETE', deleteUsersLambdaIntegration);
-    apiUsers.addMethod('POST', postUsersLambdaIntegration);
-    apiUsers.addMethod('PUT', putUsersLambdaIntegration);
+    apiUsers.addMethod('GET', getUsersLambdaIntegration, { authorizer: cognitoAuthorizer });
+    apiUsers.addMethod('DELETE', deleteUsersLambdaIntegration, { authorizer: cognitoAuthorizer });
+    apiUsers.addMethod('POST', postUsersLambdaIntegration, { authorizer: cognitoAuthorizer });
+    apiUsers.addMethod('PUT', putUsersLambdaIntegration, { authorizer: cognitoAuthorizer });
 
     // Inscription / Désinscription à un évènement
 
@@ -377,7 +377,7 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
     const apiUserById = apiUsers.addResource('{id}');
 
     // Ajouter une méthode GET à cette ressource pour récupérer un user par son ID
-    apiUserById.addMethod('GET', getUserByIdLambdaIntegration);
+    apiUserById.addMethod('GET', getUserByIdLambdaIntegration, { authorizer: cognitoAuthorizer });
 
     //Lambda pour s'inscrire à un évènement
     const signUpToEventLambda = new NodejsFunction(this, 'signUpToEvent', {

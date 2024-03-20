@@ -33,7 +33,6 @@ Les accès à l'environnement de déploiement sera limité à des plages spécif
 # To do
 
 - la table des users c'est juste pour les users normaux, par pour orga et admin, qui sont des cognito users
-- ajout des autres user pool/ authorizer sur les routes où c'est nécessaire
 - mettre eventId dans le readme
 - créer une pool avec 3 rôles iam
 - renvoyer vers un lambda qui récup le token puis qui l'utilise
