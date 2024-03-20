@@ -47,6 +47,33 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
       description: "Gestionnaire d'évènements du CY Feast"
     });
     
+    // Partie Cognito
+
+    // On créé une table dynamoDB pour stocker les utilisateurs cognito
+    this.usersTb = new Table(this, 'tableUsers', {
+      partitionKey: {
+        name: 'user-id',
+        type: AttributeType.STRING
+      },
+      tableName: 'cy-feast-users',
+      readCapacity: 1,
+      writeCapacity: 1,
+      removalPolicy: cdk.RemovalPolicy.DESTROY
+    });
+
+    // Lambda pour ajouter un utilisateur à la table DynamoDB après confirmation
+    const postConfirmationLambda = new NodejsFunction(this, 'PostConfirmationLambda', {
+      memorySize: 128,
+      description: "Ajouter un utilisateur à DynamoDB après confirmation",
+      entry: join(__dirname, '../lambda/postConfirmationLambda.ts'),
+      environment: {
+        TABLE: this.usersTb.tableName
+      },
+      runtime: lambda.Runtime.NODEJS_18_X
+    });
+
+    this.usersTb.grantReadWriteData(postConfirmationLambda);
+
     // Création de la User Pool
     const cytechUserPool = new UserPool(this, 'cytechUserPool', {
       userPoolName: 'CyTechUserPool',
@@ -56,9 +83,12 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
       userVerification: {
         emailStyle: VerificationEmailStyle.CODE,
       },
-      removalPolicy: cdk.RemovalPolicy.DESTROY
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      lambdaTriggers: {
+        postConfirmation: postConfirmationLambda
+      }
     });
-
+    
     // Créer une application client pour le pool d'utilisateurs
     const cytechUserPoolClient = new UserPoolClient(this, 'cytechUserPoolClient', {
       userPool: cytechUserPool,
@@ -295,18 +325,6 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
 
     // Users
 
-    // Ma stack va créer une table dans DynamoDB
-    this.usersTb = new Table(this, 'tableUsers', {
-      partitionKey: {
-        name: 'user-id',
-        type: AttributeType.STRING
-      },
-      tableName: 'cy-feast-users',
-      readCapacity: 1,
-      writeCapacity: 1,
-      removalPolicy: cdk.RemovalPolicy.DESTROY
-    });
-
     // Créer des lambdas pour chaque HTTP method
     const getUsersLambda = new NodejsFunction(this, 'getUsers', {
       memorySize: 128,
@@ -368,8 +386,6 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
     apiUsers.addMethod('POST', postUsersLambdaIntegration, { authorizer: cognitoAuthorizer });
     apiUsers.addMethod('PUT', putUsersLambdaIntegration, { authorizer: cognitoAuthorizer });
 
-    // Inscription / Désinscription à un évènement
-
     // Lambda pour récupérer un user par ID
     const getUserByIdLambda = new NodejsFunction(this, 'getUserById', {
       memorySize: 128,
@@ -390,6 +406,8 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
 
     // Ajouter une méthode GET à cette ressource pour récupérer un user par son ID
     apiUserById.addMethod('GET', getUserByIdLambdaIntegration, { authorizer: cognitoAuthorizer });
+
+    // Inscription / Désinscription à un évènement
 
     //Lambda pour s'inscrire à un évènement
     const signUpToEventLambda = new NodejsFunction(this, 'signUpToEvent', {
@@ -429,5 +447,24 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
     const apiSignOutFromEvent = apiEvents.addResource('sign-out-from-event');
 
     apiSignOutFromEvent.addMethod('POST', signOutFromEventLambdaIntegration, { authorizer: cognitoAuthorizer });
+
+    // Mise à jour d'un utilisateur
+    const updateUserLambda = new NodejsFunction(this, 'updateUser', {
+      memorySize: 128,
+      description: "Mettre à jour un utilisateur",
+      entry: join(__dirname, '../lambda/updateUserLambda.ts'),
+      environment: {
+        TABLE: this.usersTb.tableName
+      },
+      runtime: lambda.Runtime.NODEJS_18_X
+    });
+
+    this.usersTb.grantReadWriteData(updateUserLambda);
+
+    const updateUserLambdaIntegration = new LambdaIntegration(updateUserLambda);
+
+    const apiUpdateUser = apiUsers.addResource('update-user');
+
+    apiUpdateUser.addMethod('PUT', updateUserLambdaIntegration, { authorizer: cognitoAuthorizer });
   }
 }
