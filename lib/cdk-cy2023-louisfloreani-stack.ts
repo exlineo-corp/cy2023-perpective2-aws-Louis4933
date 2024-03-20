@@ -9,6 +9,7 @@ import { CognitoUserPoolsAuthorizer } from 'aws-cdk-lib/aws-apigateway'; // Auth
 // Outils Node
 import { join } from 'path'; // Simplifier la gestion des adresses vers les fichiers internes
 import { RestApi, LambdaIntegration } from 'aws-cdk-lib/aws-apigateway';
+import { Duration } from 'aws-cdk-lib';
 
 export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
 
@@ -66,7 +67,9 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
       authFlows: {
         userPassword: true, 
         userSrp: true
-      }
+      },
+      accessTokenValidity: Duration.hours(24), 
+      idTokenValidity: Duration.hours(24),
     });
 
     cytechUserPoolClient.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
