@@ -26,15 +26,146 @@ Si vous avez des questions, merci de me les communiquer.
 Vous serez évalués sur une infrastructure qui fonctionne. Les différents composants doivent s'interconnecter. Testez votre code sur le Learner Lab, notamment pour les Lambdas pour vérifier qu'il fonctionne et qu'il produit l'infrastructure attendue.
 Les accès à l'environnement de déploiement sera limité à des plages spécifiques. Vous ne pourrez les déployer que dans des périodes limitées.
 
+# Élève
+
+Louis FLOREANI ING3 ICC
+
 # Schéma de l'infrastructure aws
 
 ![infrastructure_aws](infrastructure_aws.png)
 
-# To do
+# Les routes & requêtes HTTP
 
-- mettre eventId dans le readme
-- renvoyer vers un lambda qui récup le token puis qui l'utilise
-- chercher lambda trigger cognito
-- enlever le post des users
-- http integration, uri
-- enlever le switch method quand ça peut être qu'une seule méthode
+/events: GET, POST, DELETE, PUT
+/stocks: GET, POST, DELETE, PUT
+/users: GET, DELETE
+
+events/{event-id}: GET
+stocks/{stock-id}: GET
+users/{user-id}: GET
+
+events/sign-up-to-event: POST
+events/sign-out-from-event: POST
+
+users/update-user: PUT
+
+# Les bodys
+
+events: POST ->
+{
+    "event-id": "{id}", 
+    "name": "{name}",
+    "date": "{date}",
+    ...
+}
+
+events: DELETE ->
+{
+    "event-id": "{id}"
+}
+
+events: PUT -> 
+{
+    "Key": {
+        "event-id": "{id}"
+    },
+    "UpdateExpression": "set #name = :name, #date = :date",
+    "ExpressionAttributeNames": {
+        "#name": "name",
+        "#date": "date"
+    },
+    "ExpressionAttributeValues": {
+        ":name": "{newName}",
+        ":date": "{newDate}"
+    }
+}
+
+...
+
+events/sign-up-to-event: POST -> 
+{ 
+    "eventId": "{id}" 
+}
+
+events/sign-out-from-event: POST -> 
+{
+    "eventId": "{id}" 
+}
+
+users/update-user: PUT ->
+
+{
+
+    "user-id": "{user-id}",
+
+    "email": "{newEmail}"
+
+}
+
+# Accès
+
+/events: GET -> public
+
+/events: POST, DELETE, PUT -> User authentifié, Orga ou Admin
+
+/stocks: GET, POST, DELETE, PUT -> User authentifié, Orga ou Admin
+
+/users: GET, DELETE -> User authentifié, Admin
+
+events/{event-id}: GET -> public
+
+stocks/{stock-id}: GET -> User authentifié, Orga ou Admin
+
+users/{user-id}: GET -> User authentifié, Admin
+
+events/sign-up-to-event: POST -> User authentifié
+
+events/sign-out-from-event: POST -> User authentifié
+
+users/update-user: PUT -> User authentifié, avec le même id que l'user modifié 
+
+(un user ne peut modifier que son propre profil)
+
+# Jeton JWT
+
+La stack créer automatiquement un système d'inscription / login avec l'Hosted UI de Cognito qui permet d'accéder au token jwt de l'user.
+
+Pour cela :
+
+-> CyTechUserPool
+
+-> App Integration
+
+-> CyTechUserPoolClient (en bas de la page)
+
+-> View Hosted UI
+
+-> Dans l'url, remplacer "response_type=code" par "response_type=token", puis Entrée
+
+-> Sign Up
+
+-> Entrer le code de vérification reçu
+
+-> L'id token est disponible dans l'URL, à utiliser dans Postman en tant que Bearer Token
+
+# Orga, Admin
+
+La stack créer automatiquement les groupes Orga et Admin. Pour qu'un user devienne Orga ou Admin, il faut l'ajouter au groupe, puis refresh son token.
+
+Pour cela : 
+
+-> CytechUserPool
+
+-> Groups
+
+-> Choisir le groupe
+
+-> Ajouter l'user
+
+-> Retourner dans l'Hosted UI
+
+-> Changer la réponse de l'url en token
+
+-> Sign In
+
+
