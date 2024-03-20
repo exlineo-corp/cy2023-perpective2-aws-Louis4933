@@ -74,7 +74,7 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
 
     cytechUserPoolClient.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
 
-    // Créer un domaine personnalisé pour le pool d'utilisateurs Cognito
+    // Créer un domaine pour le pool d'utilisateurs Cognito
     const cytechUserPoolDomain = new UserPoolDomain(this, 'cytechUserPoolDomain', {
       userPool: cytechUserPool,
       cognitoDomain: {
@@ -84,12 +84,7 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
 
     cytechUserPoolDomain.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
 
-    // Créer des groupes dans la User Pool
-    const userGroup = new CfnUserPoolGroup(this, 'UserGroup', {
-      groupName: 'User',
-      userPoolId: cytechUserPool.userPoolId
-    });
-
+    // Créer des rôles pour les Orga & Admin dans la User Pool
     const orgaGroup = new CfnUserPoolGroup(this, 'OrgaGroup', {
       groupName: 'Orga',
       userPoolId: cytechUserPool.userPoolId
@@ -100,6 +95,7 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
       userPoolId: cytechUserPool.userPoolId
     });
 
+    // L'authorizer permettra de vérifier que l'appelant est au moins user
     const cognitoAuthorizer = new CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
       cognitoUserPools: [cytechUserPool],
       identitySource: 'method.request.header.Authorization',
