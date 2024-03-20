@@ -35,15 +35,8 @@ exports.handler = async (event: any) => {
                 body = await db.scan({ TableName });
                 body = body.Items;
                 break;
-            case 'POST':
-                body = await db.put({ TableName, Item: JSON.parse(event.body) });
-                break;
             case 'DELETE':
                 body = await db.delete({ TableName, Key: JSON.parse(event.body) });
-                break;
-            case 'PUT':
-                const { Key, UpdateExpression, ExpressionAttributeNames, ExpressionAttributeValues } = JSON.parse(event.body);
-                body = await db.update({ TableName, Key, UpdateExpression, ExpressionAttributeNames, ExpressionAttributeValues });
                 break;
             default:
                 throw new Error(`Unsupported method "${event.requestContext.httpMethod}"`);

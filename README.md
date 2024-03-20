@@ -37,4 +37,4 @@ Les accès à l'environnement de déploiement sera limité à des plages spécif
 - chercher lambda trigger cognito
 - enlever le post des users
 - http integration, uri
-- remettre un lambda update user
+- enlever le switch method quand ça peut être qu'une seule méthode
