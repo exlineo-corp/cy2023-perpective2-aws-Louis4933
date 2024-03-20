@@ -31,10 +31,6 @@ exports.handler = async (event: any) => {
         }
 
         switch (event.requestContext.httpMethod) {
-            case 'GET':
-                body = await db.scan({ TableName });
-                body = body.Items;
-                break;
             case 'POST':
                 body = await db.put({ TableName, Item: JSON.parse(event.body) });
                 break;
