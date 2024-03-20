@@ -26,6 +26,9 @@ Si vous avez des questions, merci de me les communiquer.
 Vous serez évalués sur une infrastructure qui fonctionne. Les différents composants doivent s'interconnecter. Testez votre code sur le Learner Lab, notamment pour les Lambdas pour vérifier qu'il fonctionne et qu'il produit l'infrastructure attendue.
 Les accès à l'environnement de déploiement sera limité à des plages spécifiques. Vous ne pourrez les déployer que dans des périodes limitées.
 
+# Schéma de l'infrastructure aws
+
+![infrastructure_aws](infrastructure_aws.png)
 # To do
 
 - add les buckets pour les images
