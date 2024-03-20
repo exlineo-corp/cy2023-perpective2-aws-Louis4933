@@ -3,7 +3,7 @@ import { Construct } from 'constructs';
 import { AttributeType, Table } from 'aws-cdk-lib/aws-dynamodb'; // Table dynamoDB et les attributs de sa clé de partition 
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';// Créer une lambda NodeJS
-import { UserPool, UserPoolClient, UserPoolDomain, VerificationEmailStyle } from 'aws-cdk-lib/aws-cognito'; // User Pool
+import { CfnUserPoolGroup, UserPool, UserPoolClient, UserPoolDomain, VerificationEmailStyle } from 'aws-cdk-lib/aws-cognito'; // User Pool
 import { CognitoUserPoolsAuthorizer } from 'aws-cdk-lib/aws-apigateway'; // Authorizer pour l'API Gateway
 
 // Outils Node
@@ -83,6 +83,22 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
     });
 
     cytechUserPoolDomain.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
+
+    // Créer des groupes dans la User Pool
+    const userGroup = new CfnUserPoolGroup(this, 'UserGroup', {
+      groupName: 'User',
+      userPoolId: cytechUserPool.userPoolId
+    });
+
+    const orgaGroup = new CfnUserPoolGroup(this, 'OrgaGroup', {
+      groupName: 'Orga',
+      userPoolId: cytechUserPool.userPoolId
+    });
+
+    const adminGroup = new CfnUserPoolGroup(this, 'AdminGroup', {
+      groupName: 'Admin',
+      userPoolId: cytechUserPool.userPoolId
+    });
 
     const cognitoAuthorizer = new CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
       cognitoUserPools: [cytechUserPool],

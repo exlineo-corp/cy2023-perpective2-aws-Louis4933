@@ -32,9 +32,8 @@ Les accès à l'environnement de déploiement sera limité à des plages spécif
 
 # To do
 
-- la table des users c'est juste pour les users normaux, par pour orga et admin, qui sont des cognito users
 - mettre eventId dans le readme
-- créer une pool avec 3 rôles iam
 - renvoyer vers un lambda qui récup le token puis qui l'utilise
 - chercher lambda trigger cognito
 - enlever le post des users
+- http integration, uri
