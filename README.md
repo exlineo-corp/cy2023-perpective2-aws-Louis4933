@@ -37,34 +37,44 @@ Louis FLOREANI ING3 ICC
 # Les routes & requêtes HTTP
 
 /events: GET, POST, DELETE, PUT
+
 /stocks: GET, POST, DELETE, PUT
+
 /users: GET, DELETE
 
 events/{event-id}: GET
+
 stocks/{stock-id}: GET
+
 users/{user-id}: GET
 
 events/sign-up-to-event: POST
+
 events/sign-out-from-event: POST
 
 users/update-user: PUT
 
 # Les bodys
 
-events: POST ->
+/events: POST ->
+```bash
 {
     "event-id": "{id}", 
     "name": "{name}",
-    "date": "{date}",
+    "date": "{date}",    
     ...
 }
+```
 
-events: DELETE ->
+/events: DELETE ->
+```bash
 {
     "event-id": "{id}"
 }
+```
 
-events: PUT -> 
+/events: PUT -> 
+```bash
 {
     "Key": {
         "event-id": "{id}"
@@ -79,28 +89,31 @@ events: PUT ->
         ":date": "{newDate}"
     }
 }
+```
 
 ...
 
-events/sign-up-to-event: POST -> 
+/events/sign-up-to-event: POST -> 
+```bash
 { 
     "eventId": "{id}" 
 }
+```
 
-events/sign-out-from-event: POST -> 
+/events/sign-out-from-event: POST -> 
+```bash
 {
     "eventId": "{id}" 
 }
+```
 
-users/update-user: PUT ->
-
+/users/update-user: PUT ->
+```bash
 {
-
     "user-id": "{user-id}",
-
     "email": "{newEmail}"
-
 }
+```
 
 # Accès
 
@@ -167,5 +180,7 @@ Pour cela :
 -> Changer la réponse de l'url en token
 
 -> Sign In
+
+-> Utiliser le nouveau token
 
 
