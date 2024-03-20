@@ -29,7 +29,7 @@ exports.handler = async (event: any) => {
         const claims = jwt.decode(token) as jwt.JwtPayload;
 
         // Vérifier si claims n'est pas null et si l'utilisateur appartient au groupe requis
-        if (!claims || !(claims['cognito:groups'] && claims['cognito:groups'].includes('Orga')) || claims['cognito:groups'].includes('Admin')) {
+        if (!claims || !(claims['cognito:groups'] && (claims['cognito:groups'].includes('Orga')) || claims['cognito:groups'].includes('Admin'))){
             throw { statusCode: 403, message: 'Access denied.'};
         }
 
