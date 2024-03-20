@@ -313,19 +313,47 @@ export class CdkCy2023LouisfloreaniStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_18_X
     });
 
+    const postUsersLambda = new NodejsFunction(this, 'postUsers', {
+      memorySize: 128,
+      description: "Ajouter un utilisateur",
+      entry: join(__dirname, '../lambda/usersApiHandlerLambda.ts'),
+      environment: {
+        TABLE: this.usersTb.tableName
+      },
+      runtime: lambda.Runtime.NODEJS_18_X
+    });
+
+    const putUsersLambda = new NodejsFunction(this, 'putUsers', {
+        memorySize: 128,
+        description: "Mettre à jour un utilisateur",
+        entry: join(__dirname, '../lambda/usersApiHandlerLambda.ts'),
+        environment: {
+            TABLE: this.usersTb.tableName
+        },
+        runtime: lambda.Runtime.NODEJS_18_X
+    });
+    
     // Donner les permissions pour lire ou écrire dans une table en fonction de la méthode HTTP
     this.usersTb.grantReadData(getUsersLambda);
     this.usersTb.grantReadWriteData(deleteUsersLambda);
+    this.usersTb.grantWriteData(postUsersLambda);
+    this.usersTb.grantReadWriteData(putUsersLambda);
 
     // Intégration des lambdas pour les connecter à la méthode correspondante dans l'API
     const getUsersLambdaIntegration = new LambdaIntegration(getUsersLambda);
     const deleteUsersLambdaIntegration = new LambdaIntegration(deleteUsersLambda);
+    const postUsersLambdaIntegration = new LambdaIntegration(postUsersLambda);
+    const putUsersLambdaIntegration = new LambdaIntegration(putUsersLambda);
 
     // Créer une ressource pour les utilisateurs
     const apiUsers = this.cyFeastApi.root.addResource('users');
 
     apiUsers.addMethod('GET', getUsersLambdaIntegration);
     apiUsers.addMethod('DELETE', deleteUsersLambdaIntegration);
+    apiUsers.addMethod('POST', postUsersLambdaIntegration);
+    apiUsers.addMethod('PUT', putUsersLambdaIntegration);
+
+    // Inscription / Désinscription à un évènement
 
     // Lambda pour récupérer un user par ID
     const getUserByIdLambda = new NodejsFunction(this, 'getUserById', {
